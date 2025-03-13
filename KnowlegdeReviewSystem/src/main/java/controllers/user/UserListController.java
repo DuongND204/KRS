@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import models.SettingType;
 import services.StringEncoder;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -31,7 +32,7 @@ public class UserListController extends HttpServlet {
         UserDAO userDAO = new UserDAO();
         SettingDAO settingDAO = new SettingDAO();
         List<User> users = userDAO.findAll();
-        List<Setting> settings = settingDAO.findAllByRole();
+        List<Setting> settings = settingDAO.findAllByType(SettingType.Role);
 
 
         // Tạo map để lưu roleId và title tương ứng
@@ -54,7 +55,7 @@ public class UserListController extends HttpServlet {
             request.setAttribute("users", users);
             request.setAttribute("roleMap", roleMap);
             request.setAttribute("settings", settings);
-            request.getRequestDispatcher("WEB-INF/Admin/UserManagement/listuser.jsp").forward(request, response);
+            request.getRequestDispatcher("WEB-INF/Admin/UserManagement/userList.jsp").forward(request, response);
         }
     }
 

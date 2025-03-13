@@ -42,6 +42,10 @@
                 <small id="email-feedback" class="text-danger"></small>
               </div>
               <div class="col-12">
+                <label for="fullname" class="form-label">FullName <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" name="fullname" id="fullname" placeholder="Your Fullname" required>
+              </div>
+              <div class="col-12">
                 <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
                 <input type="text" class="form-control" name="username" id="username" placeholder="Your Username" required>
                 <small id="username-feedback" class="text-danger"></small>
@@ -221,18 +225,18 @@
               .then(response => response.json())
               .then(data => {
                 if (data.exists) {
-                  feedback.textContent = "Username is already taken.";
+                  feedback.textContent = "This email is already exsited in the system.";
                   feedback.classList.remove("text-success");
                   feedback.classList.add("text-danger");
                 } else {
-                  feedback.textContent = "Username is available.";
+                  feedback.textContent = "This email is available.";
                   feedback.classList.remove("text-danger");
                   feedback.classList.add("text-success");
                 }
               })
               .catch(error => {
                 console.error("Error:", error);
-                feedback.textContent = "Error checking username.";
+                feedback.textContent = "Error checking email.";
               });
     }
   });
@@ -271,6 +275,7 @@
     const password = document.getElementById('password').value;
     const confirmPassword = document.getElementById('confirm_password').value;
     const agreeTerms = document.getElementById('agree_terms').checked;
+    const fullname = document.getElementById('fullname').value;
 
     // Validate password
     if (!isPasswordValid(password)) {
@@ -315,6 +320,7 @@
         // Create the request payload
     const requestData = {
       email: email,
+      fullname: fullname,
       username: username,
       password: password
     };

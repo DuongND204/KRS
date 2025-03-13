@@ -15,6 +15,7 @@ public class Lesson {
     private List<Config> configs;
 
     public Lesson() {
+
     }
 
     public Lesson(int id, int subjectId, int createdBy, String title, String description, Date createdAt, Date modifiedAt, int modifiedBy) {
@@ -28,7 +29,6 @@ public class Lesson {
         this.modifiedBy = modifiedBy;
     }
 
-    
     public Lesson(Integer id, Integer subjectId, Integer createdBy, String title, String description, Date createdAt, Date modifiedAt, Integer modifiedBy, List<Config> configs) {
         this(id, subjectId, createdBy, title, description, createdAt, modifiedAt, modifiedBy);
         this.configs = configs;

@@ -17,7 +17,7 @@ public class SettingDAO implements DAO<Setting> {
     Connection connection = getConnection();
 
     @Override
-    public void create(Setting setting) {
+    public int create(Setting setting) {
         String sql = "INSERT INTO setting (title, type, created_by, modified_by) VALUES (?, ?, ?, ?)";
         try (Connection conn = DatabaseConnector.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -38,6 +38,7 @@ public class SettingDAO implements DAO<Setting> {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
+        return 0;
     }
 
     @Override
@@ -167,11 +168,11 @@ public class SettingDAO implements DAO<Setting> {
         return settings;
     }
 
-    public List<Setting> findAllByRole(){
+    public List<Setting> findAllBySemester(){
         ArrayList<Setting> settingList = new ArrayList<>();
         PreparedStatement ps = null;
         try {
-            String sql = "SELECT * FROM krsdb.setting where type = 'ROLE'";
+            String sql = "SELECT * FROM krsdb.setting where type = 'Semester' ORDER BY id DESC";
 
             ps = connection.prepareStatement(sql);     // chuyển câu lệnh sang sql server
             ResultSet rs = ps.executeQuery();                // thay có việc run bên sql server
@@ -205,9 +206,37 @@ public class SettingDAO implements DAO<Setting> {
         }
         return settingList;
     }
+    public String getRoleById(int roleId) {
+        String role = null;
+        Connection connection = getConnection();
+        PreparedStatement ps = null;
+        ResultSet rs = null;
 
+        try {
+            String sql = "SELECT title FROM setting WHERE id = ?";
+            ps = connection.prepareStatement(sql);
+            ps.setInt(1, roleId);
+            rs = ps.executeQuery();
+
+            if (rs.next()) {
+                role = rs.getString("title");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (ps != null) ps.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return role;
+    }
     public static void main(String[] args) {
         SettingDAO settingDAO = new SettingDAO();
-        System.out.println(settingDAO.findById(1));
+        System.out.println(settingDAO.findAllByType(SettingType.Semester));
     }
 }

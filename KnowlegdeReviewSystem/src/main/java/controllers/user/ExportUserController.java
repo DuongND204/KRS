@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import models.Setting;
+import models.SettingType;
 import models.User;
 import models.dao.SettingDAO;
 import models.dao.UserDAO;
@@ -45,7 +46,7 @@ public class ExportUserController extends HttpServlet {
         SettingDAO settingDAO = new SettingDAO();
 
         List<User> userListAll = userDAO.findAll();
-        List<Setting> roles = settingDAO.findAllByRole();
+        List<Setting> roles = settingDAO.findAllByType(SettingType.Role);
 
         // Ánh xạ roleId -> roleName
         Map<Integer, String> roleMap = roles.stream()

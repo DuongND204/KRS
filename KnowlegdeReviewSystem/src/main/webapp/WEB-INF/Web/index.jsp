@@ -256,177 +256,77 @@
 </head>
 <body>
 
-<header>
-    <div class="nav-container">
-        <!-- Logo -->
-        <div class="logo">
-            <a href="/home">
-                <img src="../Images/logo.png" alt="Website Logo">
-            </a>
-        </div>
-        <%
-            SettingDAO settingDAO = WebManager.getInstance().getSettingDAO();
-            List<Setting> categories = settingDAO.findAllByType(SettingType.Category);
-        %>
-
-        <!-- Dropdowns -->
-        <div class="dropdown">
-            <button class="dropbtn">Categories</button>
-            <div class="dropdown-content">
-                <% for (Setting category : categories) { %>
-                <a href="#"><%= category.getTitle() %></a>
-                <% } %>
-            </div>
-        </div>
-
-        <!-- Search Bar -->
-        <div class="search-container">
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Search for subjects..." oninput="debounceSearch()">
-                <button type="submit"><i class="fas fa-search"></i></button>
-            </div>
-            <div id="searchResults"></div>
-        </div>
-
-        <%
-            User user = (User) session.getAttribute("user"); // Retrieve user from session
-        %>
-
-        <!-- User Login/Profile Dropdown -->
-        <div class="user-dropdown">
-            <% if (user == null) { %>
-            <a href="login" class="login-btn">Login</a>
-            <% } else { %>
-            <!-- Dropdown -->
-            <div class="dropdown">
-                <button class="dropbtn">
-                    <i class="fas fa-user-circle"></i>
-                    <span><%= user.getUsername() %></span>
-                </button>
-                <div class="dropdown-content">
-                    <a href="profile"><i class="fas fa-user me-2"></i>Profile</a>
-
-                    <% if(user.getRoleId() != 3){ %>
-                    <a href="admin"><i class="fas fa-user me-2"></i>Web Settings</a>
-                    <% } %>
-
-                    <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt me-2"></i>Logout</a>
-                </div>
-            </div>
-            <% } %>
-        </div>
-    </div>
-
-    <script>
-        function logout() {
-            // Make an AJAX request to logout the user
-            fetch('/logout', {
-                method: 'GET', // or POST if your servlet requires POST
-                credentials: 'same-origin',  // To ensure the session cookie is sent with the request
-            })
-                .then(response => {
-                    console.log(response);
-
-                    // Redirect to the login page after successful logout
-                    if (response.ok) {
-                        window.location.href = 'login'; // Redirect to the login page (or homepage)
-                    } else {
-                        alert('Error logging out. Please try again.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error logging out. Please try again.');
-                });
-        }
-
-
-        let debounceTimer;
-
-        function debounceSearch() {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(searchSubjects, 300); // Wait 300ms after typing stops
-        }
-
-        function searchSubjects() {
-
-            let query = $("#searchInput").val();
-            if (query.length < 2) {
-                $("#searchResults").hide();
-                return;
-            }
-
-            console.log($("#searchInput").val());
-
-            $.ajax({
-                url: "/searchSubjects",
-                type: "GET",
-                data: { query: query },
-                dataType: "json",
-                success: function (data) {
-                    let html = "";
-                    data.forEach(subject => {
-                        html += `<div class="result-item" onclick="selectSubject('${subject.subjectName}')">
-                                    <strong>${subject.subjectName}</strong> - ${subject.code}
-                                </div>`;
-                    });
-                    $("#searchResults").html(html).show();
-                },
-                error: function () {
-                    $("#searchResults").hide();
-                }
-            });
-        }
-
-        function selectSubject(name) {
-            $("#searchInput").val(name);
-            $("#searchResults").hide();
-        }
-
-        $(document).on("click", function(event) {
-            if (!$(event.target).closest("#searchInput, #searchResults").length) {
-                $("#searchResults").hide();
-            }
-        });
-    </script>
-</header>
-
+<jsp:include page="header.jsp"></jsp:include>
 <!-- Random Courses Section -->
 <div class="section-title">My Classes</div>
-<div class="card-container" id="course-container">
+<div class="card-container" id="class-container">
     <!-- Cards will be loaded here dynamically -->
 </div>
 
 <script>
+    <%--$(document).ready(function () {--%>
+    <%--    $.ajax({--%>
+    <%--        url: 'getSubjects',  // Call HomeServlet--%>
+    <%--        method: 'GET',--%>
+    <%--        dataType: 'json',--%>
+    <%--        success: function (data) {--%>
+    <%--            console.log(data);--%>
+
+    <%--            let container = $('#course-container');--%>
+    <%--            container.empty(); // Clear existing content--%>
+
+    <%--            $.each(data, function (index, subject) {--%>
+    <%--                let card = `--%>
+    <%--                        <div class="card">--%>
+    <%--                            <h3>${subject.subjectName}</h3>--%>
+    <%--                            <h5>Code: ${subject.code}</h5>--%>
+    <%--                            <p>${subject.description}</p>--%>
+    <%--                            <a href="#">Learn More</a>--%>
+    <%--                        </div>--%>
+    <%--                    `;--%>
+    <%--                container.append(card);--%>
+    <%--            });--%>
+    <%--        },--%>
+    <%--        error: function () {--%>
+    <%--            alert('Failed to load courses.');--%>
+    <%--        }--%>
+    <%--    });--%>
+    <%--});--%>
+
     $(document).ready(function () {
         $.ajax({
-            url: 'getSubjects',  // Call HomeServlet
+            url: '/getMyClasses',  // Call HomeServlet for classes
             method: 'GET',
             dataType: 'json',
             success: function (data) {
                 console.log(data);
 
-                let container = $('#course-container');
+                let container = $('#class-container'); // Change the container ID
                 container.empty(); // Clear existing content
 
-                $.each(data, function (index, subject) {
+                $.each(data, function (index, classItem) {
                     let card = `
-                            <div class="card">
-                                <h3>${subject.subjectName}</h3>
-                                <h5>Code: ${subject.code}</h5>
-                                <p>${subject.description}</p>
-                                <a href="#">Learn More</a>
-                            </div>
-                        `;
+                        <div class="card">
+                            <h3>${classItem.className}</h3>
+                            <h5>Code: ${classItem.code}</h5>
+                            <h5>Subject: ${classItem.subjectName}</h5>
+                            <p>Manager ID: ${classItem.managerName}</p>
+                            <p>Status: ${classItem.status}</p>
+                            <a href="/class-enroll?class-id=${classItem.id}">Learn More</a>
+                        </div>
+                    `;
                     container.append(card);
                 });
             },
             error: function () {
-                alert('Failed to load courses.');
+                alert('Failed to load classes.');
             }
         });
     });
+
 </script>
+
+<jsp:include page="footer.jsp"></jsp:include>
 
 </body>
 </html>

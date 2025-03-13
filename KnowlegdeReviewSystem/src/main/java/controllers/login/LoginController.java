@@ -150,7 +150,7 @@ public class LoginController extends HttpServlet {
         if (user.getStatus().equals(UserStatus.NotVerified)) {
             jsonResponse.addProperty("redirectUrl", "verify-account");
         } else {
-            jsonResponse.addProperty("redirectUrl", (user.getRoleId() == 3) ? "/home" : "/admin");
+            jsonResponse.addProperty("redirectUrl", (user.getRoleId() == 3 || user.getRoleId() == 2) ? "/home" : "/admin");
         }
         response.setContentType("application/json");
         response.getWriter().write(jsonResponse.toString());
@@ -190,6 +190,8 @@ public class LoginController extends HttpServlet {
                 user.setStatus(UserStatus.Active); // Set status to active
                 userDAO.register(user); // Save the user to the database
             }
+
+            user = userDAO.findByUsernameOrEmail(email);
 
             // Log the user in
             HttpSession session = request.getSession();

@@ -1,5 +1,7 @@
 package models;
 
+import controllers.WebManager;
+
 import java.util.Date;
 import java.util.List;
 
@@ -7,14 +9,17 @@ public class Class {
     private int id;
     private int subjectId;
     private int managerId;
+    private int semesterId;
     private String className;
     private String code;
     private int createdBy;
     private int modifiedBy;
-    private List<Integer> classStudents;
+    private List<User> classStudents;
     private Date createdAt;
     private Date modifiedAt;
-
+    private ClassStatus status;
+    private String managerName;
+    private String subjectName;
 
     public Class() {
     }
@@ -27,14 +32,21 @@ public class Class {
         this.modifiedBy = modifiedBy;
     }
 
-    public Class(int id, int subjectId, int managerId, String className, String code, int createdBy, int modifiedBy) {
-        this.id = id;
-        this.subjectId = subjectId;
-        this.managerId = managerId;
+    public Class(String className, List<User> classStudents, String code, Date createdAt, int createdBy, int id, int managerId, Date modifiedAt, int modifiedBy, int semesterId, ClassStatus status, int subjectId) {
         this.className = className;
+        this.classStudents = classStudents;
         this.code = code;
+        this.createdAt = createdAt;
         this.createdBy = createdBy;
+        this.id = id;
+        this.managerId = managerId;
+        this.modifiedAt = modifiedAt;
         this.modifiedBy = modifiedBy;
+        this.semesterId = semesterId;
+        this.status = status;
+        this.subjectId = subjectId;
+        managerName = (managerId > 0) ? WebManager.getInstance().getUserDAO().getUserFullname(managerId) : "UnIdentify";
+        managerName = WebManager.getInstance().getSubjectDAO().findById(subjectId).getSubjectName();
     }
 
     //region Getter & Setter
@@ -90,11 +102,11 @@ public class Class {
         this.modifiedBy = modifiedBy;
     }
 
-    public List<Integer> getClassStudents() {
+    public List<User> getClassStudents() {
         return classStudents;
     }
 
-    public void setClassStudents(List<Integer> classStudents) {
+    public void setClassStudents(List<User> classStudents) {
         this.classStudents = classStudents;
     }
 
@@ -104,6 +116,7 @@ public class Class {
 
     public void setSubjectId(int subjectId) {
         this.subjectId = subjectId;
+        subjectName = WebManager.getInstance().getSubjectDAO().findById(subjectId).getSubjectName();
     }
 
     public int getManagerId() {
@@ -112,7 +125,62 @@ public class Class {
 
     public void setManagerId(int managerId) {
         this.managerId = managerId;
+        managerName = WebManager.getInstance().getUserDAO().getUserFullname(managerId);
     }
 
-    //endregion
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public ClassStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ClassStatus status) {
+        this.status = status;
+    }
+
+    public int getSemesterId() {
+        return semesterId;
+    }
+
+    public void setSemesterId(int semesterId) {
+        this.semesterId = semesterId;
+    }
+
+    public void setManagerName(String managerName) {
+        this.managerName = managerName;
+    }
+
+    public String getManagerName(){
+        return managerName;
+    }
+
+    public String getSubjectName() {
+        return subjectName;
+    }
+
+    public void setSubjectName(String subjectName) {
+        this.subjectName = subjectName;
+    }
+
+    @Override
+    public String toString() {
+        return "Class{" +
+                "className='" + className + '\'' +
+                ", id=" + id +
+                ", subjectId=" + subjectId +
+                ", managerId=" + managerId +
+                ", semesterId=" + semesterId +
+                ", code='" + code + '\'' +
+                ", createdBy=" + createdBy +
+                ", modifiedBy=" + modifiedBy +
+                ", classStudents=" + classStudents +
+                ", createdAt=" + createdAt +
+                ", modifiedAt=" + modifiedAt +
+                ", status=" + status +
+                '}';
+    }
+//endregion
+
 }

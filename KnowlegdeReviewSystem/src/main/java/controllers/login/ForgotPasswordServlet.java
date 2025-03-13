@@ -1,12 +1,8 @@
 package controllers.login;
 
-import java.io.IOException;
-import java.util.Random;
-
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import controllers.WebManager;
-import services.StringEncoder;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -14,22 +10,31 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import models.User;
-import services.MailSender;
 import org.json.JSONObject;
+import services.MailSender;
+import services.StringEncoder;
+
+import java.io.IOException;
+import java.util.Random;
+import java.util.logging.Logger;
 
 @WebServlet(name = "ForgotPasswordServlet", urlPatterns = {"/forgot-password", "/sendResetCode", "/verifyResetCode", "/forgot-password-verify-code", "/reset-password"})
 public class ForgotPasswordServlet extends HttpServlet {
 
+    Logger LOGGER = Logger.getLogger(ForgotPasswordServlet.class.getName());
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        String path = request.getServletPath();
+
+        System.out.println(path);
+        LOGGER.info(path);
 
         HttpSession session = request.getSession(false);
-        if(session.getAttribute("user") != null) {
+        if (session.getAttribute("user") != null) {
             response.sendRedirect("home");  // Redirect to login page (or home page)
         }
-
-        String path = request.getServletPath();
 
         switch (path) {
             case "/forgot-password":
@@ -93,7 +98,6 @@ public class ForgotPasswordServlet extends HttpServlet {
 //            jsonResponse.put("success", true);
 //            jsonResponse.put("message", "Verification code sent to email.");
 //            response.getWriter().write(jsonResponse.toString());
-
             sendResetCode(request, response);
         }
 
@@ -111,7 +115,6 @@ public class ForgotPasswordServlet extends HttpServlet {
 //            jsonResponse.put("success", true);
 //            jsonResponse.put("message", "Verification successful. Proceed with password reset.");
 //            response.getWriter().write(jsonResponse.toString());
-
             verifyResetCode(request, response);
         }
 
@@ -157,13 +160,12 @@ public class ForgotPasswordServlet extends HttpServlet {
 //
 //            // Write the JSON response
 //            response.getWriter().write(jsonResponse.toString());
-
             resetPassword(request, response);
         }
 
     }
 
-    private void sendResetCode(HttpServletRequest request, HttpServletResponse response)throws ServletException, IOException{
+    private void sendResetCode(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         HttpSession session = request.getSession();
         JSONObject jsonResponse = new JSONObject();
@@ -207,7 +209,7 @@ public class ForgotPasswordServlet extends HttpServlet {
         response.getWriter().write(jsonResponse.toString());
     }
 
-    private void verifyResetCode(HttpServletRequest request, HttpServletResponse response)throws ServletException, IOException{
+    private void verifyResetCode(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession();
         JSONObject jsonResponse = new JSONObject();
 
@@ -226,7 +228,7 @@ public class ForgotPasswordServlet extends HttpServlet {
         response.getWriter().write(jsonResponse.toString());
     }
 
-    private void resetPassword(HttpServletRequest request, HttpServletResponse response)throws ServletException, IOException{
+    private void resetPassword(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession();
         response.setContentType("application/json");
         JSONObject jsonResponse = new JSONObject();

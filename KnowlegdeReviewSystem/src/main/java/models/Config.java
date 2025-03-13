@@ -1,39 +1,50 @@
 package models;
 
 public class Config {
-    private Integer id;
-    private String title;
-    private ConfigType type;
+    private int id;
+    private int subjectId;
+    private int typeId;
+    private String description;
 
     public Config() {
     }
 
-    public Config(Integer id, String title, ConfigType type) {
+    public Config(int id, int subjectId, int typeId, String description) {
         this.id = id;
-        this.title = title;
-        this.type = type;
+        this.subjectId = subjectId;
+        this.typeId = typeId;
+        this.description = description;
     }
 
-    //region Getter & Setter
-
-    public Integer getId() {
+    public int getId() {
         return id;
     }
 
-    public String getTitle() {
-        return title;
+    public void setId(int id) {
+        this.id = id;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public int getTypeId() {
+        return typeId;
     }
 
-    public ConfigType getType() {
-        return type;
+    public void setTypeId(int typeId) {
+        this.typeId = typeId;
     }
 
-    public void setType(ConfigType type) {
-        this.type = type;
+    public String getDescription() {
+        return description;
     }
-    //endregion
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public int getSubjectId() {
+        return subjectId;
+    }
+
+    public void setSubjectId(int subjectId) {
+        this.subjectId = subjectId;
+    }
 }

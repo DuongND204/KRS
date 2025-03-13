@@ -1,6 +1,5 @@
 package models.dao;
 
-import controllers.WebManager;
 import models.DAO;
 import models.User;
 import models.UserStatus;
@@ -13,13 +12,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class UserDAO extends DatabaseConnector implements DAO<User> {
     Connection connection = getConnection();
@@ -31,7 +25,7 @@ public class UserDAO extends DatabaseConnector implements DAO<User> {
 
 
     @Override
-    public void create(User user) {
+    public int create(User user) {
         String sql = "INSERT INTO user (full_name, username, password_hash, email, role_id, status, created_at, modified_at) VALUES (?, ?, ?, ?, ?, ?, now(), now())";
 
         try (Connection connection = DatabaseConnector.getConnection();
@@ -50,6 +44,7 @@ public class UserDAO extends DatabaseConnector implements DAO<User> {
         } catch (SQLException e) {
             System.err.println("Error creating user: " + e.getMessage());
         }
+        return 0;
     }
 
     public void register(User user) {
@@ -277,22 +272,46 @@ public class UserDAO extends DatabaseConnector implements DAO<User> {
         return userList;
     }
 
-    public List<User> searchUsers(String searchQuery, Integer roleId) {
+    public List<User> searchUsers(String searchQuery, Integer roleId, UserStatus status) {
         List<User> userList = new ArrayList<>();
         PreparedStatement ps = null;
         ResultSet rs = null;
 
         try {
             String sql = "SELECT * FROM krsdb.user WHERE "
-                    + "(full_name LIKE CONCAT('%', COALESCE(?, full_name), '%')) "
-                    + "AND (role_id = COALESCE(?, role_id))";
+                    + "(? IS NULL OR full_name LIKE CONCAT('%', ?, '%') "
+                    + "OR username LIKE CONCAT('%', ?, '%') "
+                    + "OR email LIKE CONCAT('%', ?, '%')) "
+                    + "AND (role_id = COALESCE(?, role_id)) "
+                    + "AND (? IS NULL OR status = ?)";
+
 
             ps = connection.prepareStatement(sql);
-            ps.setString(1, searchQuery != null ? searchQuery : null);
-            if (roleId != null) {
-                ps.setInt(2, roleId);
+            if (searchQuery == null || searchQuery.trim().isEmpty()) {
+                ps.setNull(1, Types.VARCHAR);
+                ps.setNull(2, Types.VARCHAR);
+                ps.setNull(3, Types.VARCHAR);
+                ps.setNull(4, Types.VARCHAR);
             } else {
-                ps.setNull(2, java.sql.Types.INTEGER);
+                ps.setString(1, searchQuery);
+                ps.setString(2, searchQuery);
+                ps.setString(3, searchQuery);
+                ps.setString(4, searchQuery);
+            }
+
+
+            if (roleId != null) {
+                ps.setInt(5, roleId);
+            } else {
+                ps.setNull(5, Types.INTEGER);
+            }
+
+            if (status != null) {
+                ps.setString(6, status.toString());
+                ps.setString(7, status.toString());
+            } else {
+                ps.setNull(6, Types.VARCHAR);
+                ps.setNull(7, Types.VARCHAR);
             }
 
             rs = ps.executeQuery();
@@ -387,5 +406,116 @@ public class UserDAO extends DatabaseConnector implements DAO<User> {
         return user;
     }
 
+    public String getUserFullname(int userId){
+        String sql = "SELECT full_name FROM krsdb.user WHERE id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("full_name");
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error while fetching manager username", e);
+        }
+        return "Unknown";
+    }
+
+    public String getManagerUsername(int managerId) {
+        String sql = "SELECT username FROM krsdb.user WHERE id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, managerId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("username");
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error while fetching manager username", e);
+        }
+        return "Unknown";
+    }
+
+    public int getIdByUsername(String username) {
+        String sql = "SELECT id FROM krsdb.user WHERE username = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, username);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("id");
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error while fetching manager ID by username", e);
+        }
+        return -1;  // Return -1 if username is not found
+    }
+
+    public String getRoleByUsername(String username) {
+        String role = null;
+        Connection connection = getConnection();
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            // Sử dụng JOIN để lấy role trực tiếp từ bảng setting
+            String sql = "SELECT s.title FROM user u " +
+                    "JOIN setting s ON u.role_id = s.id " +
+                    "WHERE u.username = ?";
+
+            ps = connection.prepareStatement(sql);
+            ps.setString(1, username);
+            rs = ps.executeQuery();
+
+            if (rs.next()) {
+                // Trả về title của role từ bảng setting
+                role = rs.getString("title");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (ps != null) ps.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return role;
+    }
+
+    public User findByEmail(String email) {
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        User user = null;
+
+        try {
+            String sql = "SELECT * FROM user WHERE email = ?";
+            ps = connection.prepareStatement(sql);
+            ps.setString(1, email);
+            rs = ps.executeQuery();
+
+            if (rs.next()) {
+                user = new User();
+                user.setId(rs.getInt("id"));
+                user.setFullName(rs.getString("full_name"));
+                user.setEmail(rs.getString("email"));
+                user.setAvatar(rs.getString("avatar"));
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (ps != null) ps.close();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        }
+
+        return user;
+    }
 
 }

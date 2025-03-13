@@ -12,6 +12,7 @@ public class WebManager {
     private SettingDAO settingDAO;
     private LessonDAO lessonDAO;
     private ConfigDAO configDAO;
+    private QuestionDAO questionDAO;
     private Logger logger;
 
     private static WebManager instance;
@@ -69,6 +70,11 @@ public class WebManager {
     public ConfigDAO getConfigDAO() {
         configDAO = getDAOInstance(configDAO, ConfigDAO.class);
         return configDAO;
+    }
+
+    public QuestionDAO getQuestionDAO() {
+        questionDAO = getDAOInstance(questionDAO, QuestionDAO.class);
+        return questionDAO;
     }
 
     public Logger getLogger() {

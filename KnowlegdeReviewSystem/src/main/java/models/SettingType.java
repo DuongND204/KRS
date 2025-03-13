@@ -2,5 +2,7 @@ package models;
 
 public enum SettingType {
     Role,
-    Category
+    Category,
+    Semester,
+    Config
 }

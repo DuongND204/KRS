@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import models.Setting;
+import models.SettingType;
 import models.User;
 import models.dao.SettingDAO;
 import models.dao.UserDAO;
@@ -32,18 +33,18 @@ public class UserUpdateController extends HttpServlet {
         User oldUser = userDAO.findById(Integer.parseInt(id));
 
         // Lấy danh sách Role từ Setting
-        List<Setting> settings = settingDAO.findAllByRole();
+        List<Setting> settings = settingDAO.findAllByType(SettingType.Role);
 
         request.setAttribute("oldUser", oldUser);
         request.setAttribute("settings", settings); // Truyền danh sách Role sang JSP
-        request.getRequestDispatcher("WEB-INF/Admin/UserManagement/updateuser.jsp").forward(request, response);
+        request.getRequestDispatcher("WEB-INF/Admin/UserManagement/userUpdate.jsp").forward(request, response);
 
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-// Lấy dữ liệu từ form
+
         int id = Integer.parseInt(request.getParameter("id"));
         String fullName = request.getParameter("fullname");
         String email = request.getParameter("email");

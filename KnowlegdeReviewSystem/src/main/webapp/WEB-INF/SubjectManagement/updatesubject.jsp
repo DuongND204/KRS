@@ -10,7 +10,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css"
+          rel="stylesheet">
     <style>
         body {
             background-color: #f4f6f9;
@@ -40,12 +41,13 @@
             font-size: 24px;
             font-weight: bold;
             color: #333;
+            margin-bottom: 20px;
         }
 
         .form-container {
-            margin: 40px auto;
+            margin: 20px auto 40px;
             background-color: #fff;
-            padding: 50px;
+            padding: 30px;
             border-radius: 12px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             max-width: 900px;
@@ -58,17 +60,23 @@
             padding: 10px;
         }
 
-        .btn-save {
-            background-color: #9370DB;
-            color: white;
-            border-radius: 8px;
-            padding: 15px 20px;
+        .form-select {
+            background-color: #d9edf7;
             border: none;
-            width: 100%;
+            border-radius: 8px;
+            padding: 10px;
         }
 
-        .btn-save:hover {
-            background-color: #7B68EE;
+        .btn-primary {
+            background-color: blue;
+            color: white;
+            border-radius: 8px;
+            padding: 10px 20px;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: darkblue;
         }
 
         .row .col-md-6 {
@@ -78,76 +86,123 @@
         .form-check-input {
             margin-right: 10px;
         }
+
+        .container-box {
+            margin-bottom: 20px;
+        }
+
+        .nav-tabs .nav-link.active {
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
 <%Subject subject = (Subject) request.getAttribute("subject");%>
 <div class="container-fluid">
     <div class="row">
+        <!-- Sidebar -->
         <div class="col-auto px-0 sidebar d-none d-md-block">
             <div class="d-flex flex-column p-3">
                 <h5 class="text-white mb-4">AdminKit</h5>
                 <nav class="nav flex-column">
-                    <a class="nav-link" href="/home"><i class="bi bi-house"></i> Home</a>
+                    <a class="nav-link" href="/home"><i class="bi bi-house me-2"></i> Home</a>
                     <a class="nav-link" href="/user"><i class="bi bi-people me-2"></i> User</a>
-                    <a class="nav-link" href="/subject"><i class="bi bi-book"></i> Subject</a>
-                    <a class="nav-link" href="/setting"><i class="bi bi-gear"></i> Setting</a>
+                    <a class="nav-link" href="/subject"><i class="bi bi-book me-2"></i> Subject</a>
+                    <a class="nav-link" href="/setting"><i class="bi bi-gear me-2"></i> Setting</a>
                 </nav>
             </div>
         </div>
 
+        <!-- Main Content -->
         <div class="col p-0">
-            <div class="header-bar">Subject Information</div>
+            <!-- Header -->
+            <div class="header-bar d-flex justify-content-between align-items-center px-4 bg-white shadow-sm py-3">
+                <div class="header-title"><%=subject.getSubjectName()%> Management</div>
+            </div>
 
-            <div class="form-container">
-                <form action="subject" method="POST">
-                    <input type="hidden" name="action" value="update">
-                    <input type="hidden" name="id" value="<%=subject.getId()%>">
+            <!-- Navigation Tabs -->
+            <div class="container mt-6">
+                <div class="container-box">
+                    <ul class="nav nav-tabs">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="subject">GENERAL</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="subject?action=getLesson&id=<%=subject.getId()%>">LESSON</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="config">CONFIG</a>
+                        </li>
+                    </ul>
+                </div>
+                <!-- Subject Information Section -->
+                <div class="container">
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <label for="code" class="form-label">Subject Code</label>
-                            <input type="text" class="form-control" id="code" name="code" value="${subject.code}" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="name" class="form-label">Subject Name</label>
-                            <input type="text" class="form-control" id="name" name="name" value="<%=subject.getSubjectName()%>" required>
-                        </div>
-                        <div class="col-md-12">
-                            <label for="description" class="form-label">Description</label>
-                            <textarea class="form-control" id="description" name="description" rows="3"><%=subject.getDescription()%></textarea>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="domain" class="form-label">Domain</label>
-                            <select class="form-select form-control" id="domain" name="domain">
-                                <% HashMap<Integer, String> map = (HashMap<Integer, String>) request.getAttribute("map"); %>
-                                <% for (HashMap.Entry<Integer, String> entry : map.entrySet()) { %>
-                                <option value="<%= entry.getKey() %>" <%=subject.getDomainId() == entry.getKey() ? "selected" : ""%>>
-                                    <%= entry.getValue() %>
-                                </option>
-                                <% } %>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Status</label>
-                            <div class="mt-2">
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="status" id="statusActive" value="Active" <%=(subject.isStatus()) ? "checked" : ""%>>
-                                    <label class="form-check-label" for="statusActive">Active</label>
+
+                    <div class="form-container">
+                        <div class="header-bar" >Subject Information</div>
+                        <form action="subject" method="POST">
+                            <input type="hidden" name="action" value="update">
+                            <input type="hidden" name="id" value="<%=subject.getId()%>">
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="code" class="form-label">Subject Code</label>
+                                    <input type="text" class="form-control" id="code" name="code" value="${subject.code}"
+                                           required>
                                 </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="status" id="statusInactive" value="Inactive" <%=(!subject.isStatus()) ? "checked" : ""%>>
-                                    <label class="form-check-label" for="statusInactive">Inactive</label>
+                                <div class="col-md-6">
+                                    <label for="name" class="form-label">Subject Name</label>
+                                    <input type="text" class="form-control" id="name" name="name"
+                                           value="<%=subject.getSubjectName()%>" required>
+                                </div>
+                                <div class="col-md-12">
+                                    <label for="description" class="form-label">Description</label>
+                                    <textarea class="form-control" id="description" name="description"
+                                              rows="3"><%=subject.getDescription()%></textarea>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="domain" class="form-label">Domain</label>
+                                    <select class="form-select" id="domain" name="domain">
+                                        <% HashMap<Integer, String> map = (HashMap<Integer, String>) request.getAttribute("map"); %>
+                                        <% for (HashMap.Entry<Integer, String> entry : map.entrySet()) { %>
+                                        <option value="<%= entry.getKey() %>" <%=subject.getDomainId() == entry.getKey() ? "selected" : ""%>>
+                                            <%= entry.getValue() %>
+                                        </option>
+                                        <% } %>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Status</label>
+                                    <div class="mt-2">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="status" id="statusActive"
+                                                   value="Active" <%=(subject.isStatus()) ? "checked" : ""%>>
+                                            <label class="form-check-label" for="statusActive">Active</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="status" id="statusInactive"
+                                                   value="Inactive" <%=(!subject.isStatus()) ? "checked" : ""%>>
+                                            <label class="form-check-label" for="statusInactive">Inactive</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+
+                                    <label class="form-label" for="manage">Manage By</label>
+
+                                    <input type="text" class="form-control popup" id="manage" name="manage" value="admin" readonly>
                                 </div>
                             </div>
-                        </div>
+                            <div class="text-end">
+                                <input type="submit" name="submit" value="Change" class="btn-primary">
+                            </div>
+                        </form>
                     </div>
-                    <div style="display: flex; justify-content: end">
-                        <input type="submit" name="submit" class="btn btn-primary w-30 py-2 rounded-3 shadow-sm mt-3" value="Change"></input>
-
-                    </div>
-                </form>
+                </div>
             </div>
+
+
         </div>
     </div>
 </div>

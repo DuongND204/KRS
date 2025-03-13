@@ -13,7 +13,7 @@ import models.dao.UserDAO;
 /**
  * @author Admin
  */
-@WebServlet(name = "UserCheckController", urlPatterns = {"/user/checkUserExists"})
+@WebServlet(name = "UserCheckController", urlPatterns = {"/user/checkUserExists", "/user/checkManagerRole"})
 public class UserCheckController extends HttpServlet {
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
@@ -23,61 +23,53 @@ public class UserCheckController extends HttpServlet {
 
         String email = request.getParameter("email");
         String username = request.getParameter("username");
+        String manager = request.getParameter("manager");
+        String path = request.getServletPath();
         UserDAO userDAO = new UserDAO();
-
-        boolean emailExists = email != null && userDAO.isEmailExists(email);
-        boolean usernameExists = username != null && userDAO.isUsernameExists(username);
 
         PrintWriter out = response.getWriter();
 
-        if (emailExists) {
-            out.println("<span class='text-danger'>Email already exists!</span>");
-        } else {
-            out.println(""); // Trả về chuỗi rỗng nếu không có lỗi
-        }
+        if (email != null || username != null) {
+            // Kiểm tra email và username đã tồn tại hay chưa
+            boolean emailExists = email != null && userDAO.isEmailExists(email);
+            boolean usernameExists = username != null && userDAO.isUsernameExists(username);
 
-        if (usernameExists) {
-            out.println("<span class='text-danger'>Username already exists!</span>");
-        } else {
-            out.println(""); // Trả về chuỗi rỗng nếu không có lỗi
+            if (emailExists) {
+                out.println("<span class='text-danger'>Email already exists!</span>");
+            } else {
+                out.println(""); // Trả về chuỗi rỗng nếu không có lỗi
+            }
+
+            if (usernameExists) {
+                out.println("<span class='text-danger'>Username already exists!</span>");
+            } else {
+                out.println(""); // Trả về chuỗi rỗng nếu không có lỗi
+            }
+        } else if (manager != null) {
+            // Kiểm tra vai trò của người quản lý (manager)
+            String role = userDAO.getRoleByUsername(manager);
+
+            if ("Teacher".equalsIgnoreCase(role)) {
+                out.println(""); // Không có lỗi, không cần thông báo
+            } else {
+                // Trả về thông báo lỗi nếu không phải giảng viên
+                out.println("<span class='text-danger'>Manager must be a teacher.</span>");
+            }
         }
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request  servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException      if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request  servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException      if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
     @Override
     public String getServletInfo() {
         return "Short description";

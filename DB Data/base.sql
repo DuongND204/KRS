@@ -22,7 +22,7 @@ CREATE TABLE `setting` (
   `created_by` integer,
   `title` varchar(255) NOT NULL,
   `created_at` timestamp,
-  `type` ENUM ('Role', 'Category'),
+  `type` ENUM ('Role', 'Category', 'Semester', 'Config'),
   `modified_at` timestamp,
   `modified_by` integer
 );
@@ -55,8 +55,10 @@ CREATE TABLE `lesson` (
 
 CREATE TABLE `config` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
-  `title` varchar(255),
-  `type` ENUM ('Domain', 'Skill', 'Module', 'Lesson Chapter')
+  `subject_id` integer,
+  `type_id` integer,
+  `description` varchar(255),
+  `status` ENUM ('Active', 'Inactive') DEFAULT 'Active'
 );
 
 CREATE TABLE `lesson_config` (
@@ -69,21 +71,23 @@ CREATE TABLE `class` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
   `subject_id` integer,
   `manager_id` integer,
+  `semester_id` integer,
   `class_name` varchar(255),
   `code` varchar(255),
   `created_at` timestamp,
   `created_by` integer,
   `modified_at` timestamp,
-  `modified_by` integer
+  `modified_by` integer,
+  `status` ENUM ('Public', 'Private')
 );
 
 CREATE TABLE `class_student` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
   `class_id` integer,
   `user_id` integer,
-  `status` ENUM ('Active', 'Deactivated', 'Pending'),
   `modified_at` timestamp,
-  `modified_by` integer
+  `modified_by` integer,
+  `status` ENUM('Approved','Unapproved')
 );
 
 CREATE TABLE `subject_manager` (
@@ -98,7 +102,6 @@ CREATE TABLE `question` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
   `subject_id` integer,
   `lesson_id` integer,
-  `image` varchar(255),
   `content` varchar(255)
 );
 
@@ -111,6 +114,7 @@ CREATE TABLE `question_domain` (
 CREATE TABLE `answer_option` (
   `id` integer PRIMARY KEY AUTO_INCREMENT,
   `question_id` integer,
+  `content` varchar(255),
   `is_answer` boolean
 );
 
@@ -175,3 +179,27 @@ ALTER TABLE `term` ADD FOREIGN KEY (`lesson_id`) REFERENCES `lesson` (`id`);
 ALTER TABLE `term_domain` ADD FOREIGN KEY (`term_id`) REFERENCES `term` (`id`);
 
 ALTER TABLE `term_domain` ADD FOREIGN KEY (`domain_id`) REFERENCES `config` (`id`);
+
+ALTER TABLE `config` ADD FOREIGN KEY (`subject_id`) REFERENCES `subject` (`id`);
+
+ALTER TABLE `config` ADD FOREIGN KEY (`type_id`) REFERENCES `setting` (`id`);
+
+ALTER TABLE `class` ADD FOREIGN KEY (`semester_id`) REFERENCES `setting` (`id`);
+
+ALTER TABLE `question` ADD FOREIGN KEY (`lesson_id`) REFERENCES `lesson` (`id`);
+
+-- Create the new question_config table for many-to-many relationship
+CREATE TABLE `question_config` (
+  `id` integer PRIMARY KEY AUTO_INCREMENT,
+  `config_id` integer NOT NULL,
+  `question_id` integer NOT NULL,
+  FOREIGN KEY (`config_id`) REFERENCES `config`(`id`),
+  FOREIGN KEY (`question_id`) REFERENCES `question`(`id`)
+);
+
+-- Modify the question table to add the status column
+ALTER TABLE `question`
+ADD COLUMN `status` ENUM('active', 'inactive');
+
+
+

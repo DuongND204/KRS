@@ -8,6 +8,8 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class SubjectDAO extends DatabaseConnector implements DAO<Subject> {
     Connection connection = getConnection();
@@ -27,7 +29,7 @@ public class SubjectDAO extends DatabaseConnector implements DAO<Subject> {
     }
 
     @Override
-    public void create(Subject subject) {
+    public int create(Subject subject) {
         String sql = "INSERT INTO subject ( category_id, domain_id, name, code, description, modified_at, status, created_by) VALUES (?, ?, ?, ?, ?, Now(), ?, ?)";
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
@@ -71,6 +73,7 @@ public class SubjectDAO extends DatabaseConnector implements DAO<Subject> {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        return 0;
     }
 
     public void changeStatus(Subject subject) {
@@ -265,4 +268,86 @@ public class SubjectDAO extends DatabaseConnector implements DAO<Subject> {
 
         return list;
     }
+
+    public String getSubjectCodeById(int subjectId) {
+        String sql = "SELECT code FROM krsdb.subject WHERE id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, subjectId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("code");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return "Unknown";
+    }
+
+    public String getSubjectNameById(int subjectId) {
+        String sql = "SELECT name FROM krsdb.subject WHERE id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, subjectId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("name"); // Lấy tên subject
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return "Unknown";
+    }
+
+    public String getDomain(int subjectId) {
+        String sql = "SELECT cfg.title FROM krsdb.subject s LEFT JOIN krsdb.setting cfg ON s.domain_id = cfg.id WHERE s.id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, subjectId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("title");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return "Unknown";
+    }
+
+    public List<Subject> findByDomain(int domainId) {
+        List<Subject> subjectList = new ArrayList<>();
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            String sql = "SELECT * FROM krsdb.subject WHERE domain_id = ?";
+            ps = connection.prepareStatement(sql);
+            ps.setInt(1, domainId);
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Subject subject = new Subject();
+                subject.setId(rs.getInt("id"));
+                subject.setCode(rs.getString("code"));
+                subject.setDomainId(rs.getInt("domain_id"));
+                subjectList.add(subject);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(SubjectDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (ps != null) ps.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(SubjectDAO.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        return subjectList;
+    }
+
+
+//    public static void main(String[] args) {
+//        SubjectDAO subject = new SubjectDAO();
+//        System.out.println(subject.getSubjectNameById(1));
+//    }
 }

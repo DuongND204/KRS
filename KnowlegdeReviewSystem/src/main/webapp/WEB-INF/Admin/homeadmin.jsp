@@ -47,9 +47,12 @@
                 <h5 class="text-white mb-4">AdminKit</h5>
                 <nav class="nav flex-column">
                     <a class="nav-link" href="/home"><i class="bi bi-house"></i> Home</a>
-                    <a class="nav-link" href="/user"><i class="bi bi-people me-2"></i> User</a>
+                    <a class="nav-link" href="/user"><i class="bi bi-person-circle"></i> User</a>
                     <a class="nav-link" href="/subject"><i class="bi bi-book"></i> Subject</a>
+                    <a class="nav-link" href="/class_management"><i class="bi bi-people"></i> Class</a>
                     <a class="nav-link" href="/setting"><i class="bi bi-gear"></i> Setting</a>
+                    <a class="nav-link" href="question"><i class="bi bi-question-octagon"></i>Question</a>
+
                 </nav>
             </div>
         </div>

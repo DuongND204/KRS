@@ -5,8 +5,11 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import models.Lesson;
 import models.Subject;
 import models.dao.DTOSubject;
+import models.dao.LessonDAO;
 import models.dao.SubjectDAO;
 
 import java.io.IOException;
@@ -31,7 +34,7 @@ public class SubjectController extends HttpServlet {
                         "INNER JOIN setting ON subject.domain_id = setting.id " +
                         "WHERE setting.type = 'Category'";
                 if (request.getParameter("search") != null) {
-                     sql = "SELECT subject.id, subject.code, setting.title, subject.name, " +
+                    sql = "SELECT subject.id, subject.code, setting.title, subject.name, " +
                             "subject.description, subject.modified_at, subject.status " +
                             "FROM subject " +
                             "INNER JOIN setting ON subject.domain_id = setting.id " +
@@ -58,16 +61,16 @@ public class SubjectController extends HttpServlet {
             else{
                 if (action.equals("create")) {
 
-                        Subject subject = new Subject();
-                        subject.setSubjectName(request.getParameter("name"));
-                        subject.setCode(request.getParameter("code"));
-                        subject.setDescription(request.getParameter("description"));
-                        subject.setDomainId(Integer.parseInt(request.getParameter("domain")));
-                        subject.setCategoryId(5);
-                        subject.setStatus((request.getParameter("status").equals("Active")) ? true : false);
-                        dao.create(subject);
+                    Subject subject = new Subject();
+                    subject.setSubjectName(request.getParameter("name"));
+                    subject.setCode(request.getParameter("code"));
+                    subject.setDescription(request.getParameter("description"));
+                    subject.setDomainId(Integer.parseInt(request.getParameter("domain")));
+                    subject.setCategoryId(5);
+                    subject.setStatus((request.getParameter("status").equals("Active")) ? true : false);
+                    dao.create(subject);
 
-                        response.sendRedirect("subject?status=success");
+                    response.sendRedirect("subject?status=success");
 
                 }
                 if (action.equals("update")) {
@@ -76,6 +79,9 @@ public class SubjectController extends HttpServlet {
                         Map<Integer, String> map = dao.getDomains();
                         request.setAttribute("map", map);
                         request.setAttribute("subject", dao.findById(id));
+                        HttpSession session = request.getSession();
+                        session.setAttribute("subject", dao.findById(id));
+                        session.setAttribute("subject", dao.findById(id));
                         request.getRequestDispatcher("WEB-INF/SubjectManagement/updatesubject.jsp").forward(request, response);
                     }
                     else {
@@ -113,6 +119,15 @@ public class SubjectController extends HttpServlet {
                     dao.changeStatus(subject);
 
                     response.sendRedirect("subject?status=success");
+                }
+                if(action.equals("getLesson")) {
+                    LessonDAO lessonDAO = new LessonDAO();
+                    SubjectDAO subjectDAO = new SubjectDAO();
+                    int id = Integer.parseInt(request.getParameter("id"));
+                    List<Lesson> lessons = lessonDAO.findAllLessonsInSubject(id);
+                    request.setAttribute("lessons", lessons);
+                    request.setAttribute("subject", subjectDAO.findAll());
+                    request.getRequestDispatcher("WEB-INF/SubjectManagement/getlesson.jsp").forward(request, response);
                 }
             }
         }

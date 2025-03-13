@@ -58,6 +58,7 @@ public class RegisterController extends HttpServlet {
         String email = null;
         String username = null;
         String password = null;
+        String fullname = null;
 
         try {
             JsonObject jsonObject = JsonParser.parseString(json).getAsJsonObject();
@@ -65,6 +66,7 @@ public class RegisterController extends HttpServlet {
             email = jsonObject.get("email").getAsString();
             username = jsonObject.get("username").getAsString();
             password = jsonObject.get("password").getAsString();
+            fullname = jsonObject.get("fullname").getAsString();
         } catch (Exception e) {
             e.printStackTrace();
             sendErrorResponse(response, "Invalid request data.");
@@ -88,11 +90,12 @@ public class RegisterController extends HttpServlet {
         User user = new User();
         user.setEmail(email);
         user.setUsername(username);
+        user.setFullName(fullname);
         user.setPasswordHash(hashedPassword);
         user.setRoleId(3); // Default role (e.g., 2 for regular user)
         user.setStatus(UserStatus.NotVerified); // Set status to active
 
-        System.out.println(user);
+        //System.out.println(user);
 
         // Save the user to the database
         userDAO.register(user);
