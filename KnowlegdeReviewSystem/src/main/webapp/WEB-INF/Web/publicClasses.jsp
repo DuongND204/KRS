@@ -20,11 +20,7 @@
             margin: 0;
             padding: 0;
             background-color: #f8f9fa;
-            background-image: url('../Images/background.jpg'); /* Path to your HD image */
-            background-size: cover; /* Ensures the image covers the entire background */
-            background-position: center center; /* Centers the image */
-            background-attachment: fixed; /* Keeps the background fixed when scrolling */
-            background-repeat: no-repeat; /* Prevents the image from repeating */
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
 
         @media (min-width: 1200px) {
@@ -355,7 +351,6 @@
         <p><strong>Class Code:</strong> <span id="class-code"></span></p>
         <p><strong>Subject:</strong> <span id="subject"></span></p>
         <p><strong>Instructor:</strong> <span id="instructor-name"></span></p>
-        <p><strong>Class Status:</strong> <span id="class-status"></span></p>
 
         <div class="enroll-section">
             <button class="enroll-btn" onclick="enroll()">Enroll Now</button>

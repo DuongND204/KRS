@@ -18,11 +18,7 @@ import java.sql.*;
 public class UserDAO extends DatabaseConnector implements DAO<User> {
     Connection connection = getConnection();
 
-    //region DAO
-    //TODO: Implement logic for CRUD
-
     private static final Logger LOGGER = Logger.getLogger(UserDAO.class.getName());
-
 
     @Override
     public int create(User user) {
@@ -48,16 +44,17 @@ public class UserDAO extends DatabaseConnector implements DAO<User> {
     }
 
     public void register(User user) {
-        String sql = "INSERT INTO user (username, password_hash, email, role_id, status, created_at, modified_at) VALUES (?, ?, ?, ?, ?, Now(), Now())";
+        String sql = "INSERT INTO user (username, avatar, password_hash, email, role_id, status, created_at, modified_at, full_name) VALUES (?, ?, ?, ?, ?, ?, Now(), Now(), ?)";
 
         try (Connection connection = DatabaseConnector.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, user.getUsername());
-            preparedStatement.setString(2, user.getPasswordHash());
-            preparedStatement.setString(3, user.getEmail());
-            preparedStatement.setInt(4, user.getRoleId());
-            preparedStatement.setString(5, user.getStatus().toString());
-
+            preparedStatement.setString(2, user.getAvatar());
+            preparedStatement.setString(3, user.getPasswordHash());
+            preparedStatement.setString(4, user.getEmail());
+            preparedStatement.setInt(5, user.getRoleId());
+            preparedStatement.setString(6, user.getStatus().toString());
+            preparedStatement.setString(7, user.getFullName());
             //System.out.println(preparedStatement);
 
             preparedStatement.executeUpdate();
@@ -77,14 +74,15 @@ public class UserDAO extends DatabaseConnector implements DAO<User> {
                     "SET full_name = ?, " +
                     "email = ?, " +
                     "role_id = ?, " +
-                    "modified_at = ? " +
+                    "modified_at = NOW(), " +
+                    "avatar = ? " +
                     "WHERE id = ?";
 
             ps = connection.prepareStatement(sql);
             ps.setString(1, user.getFullName());
             ps.setString(2, user.getEmail());
             ps.setInt(3, user.getRoleId());
-            ps.setTimestamp(4, new java.sql.Timestamp(user.getModifiedAt().getTime()));
+            ps.setString(4, user.getAvatar());
             ps.setInt(5, user.getId());
 
             ps.executeUpdate();
@@ -154,35 +152,6 @@ public class UserDAO extends DatabaseConnector implements DAO<User> {
 
         return user;
     }
-//
-//    @Override
-//    public void update(User user) {
-//        String sql = "UPDATE user SET full_name = ?, avatar = ?, username = ?, password_hash = ?, email = ?, role_id = ?, status = ?, modified_at = Now() WHERE id = ?";
-//
-//        try (Connection connection = DatabaseConnector.getConnection();
-//             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-//
-//            preparedStatement.setString(1, user.getFullName());
-//            preparedStatement.setString(2, user.getAvatar());
-//            preparedStatement.setString(3, user.getUsername());
-//            preparedStatement.setString(4, user.getPasswordHash());
-//            preparedStatement.setString(5, user.getEmail());
-//            preparedStatement.setInt(6, user.getRoleId());
-//            preparedStatement.setString(7, user.getStatus().toString());
-//            preparedStatement.setInt(8, user.getId());
-//
-//            int rowsUpdated = preparedStatement.executeUpdate();
-//
-//            if (rowsUpdated > 0) {
-//                LOGGER.info("User updated successfully! ID: " + user.getId());
-//            } else {
-//                LOGGER.warning("No user found with ID: " + user.getId());
-//            }
-//
-//        } catch (SQLException e) {
-//            LOGGER.warning("Error updating user: " + e.getMessage());
-//        }
-//    }
 
     public void updateStatus(User user){
         String sql = "UPDATE user SET status = ?, modified_at = Now() WHERE id = ?";
@@ -374,7 +343,7 @@ public class UserDAO extends DatabaseConnector implements DAO<User> {
     public User findByUsernameOrEmail(String usernameOrEmail) {
         System.out.println("Find User By Username or Email: " + usernameOrEmail);
 
-        String sql = "SELECT * FROM user WHERE username = ? OR email = ?";
+        String sql = "SELECT * FROM user WHERE (username = ? OR email = ?) AND (status = 'Active' OR status = 'NotVerified')";
         User user = null;
 
         try (Connection connection = DatabaseConnector.getConnection();
@@ -492,7 +461,7 @@ public class UserDAO extends DatabaseConnector implements DAO<User> {
         User user = null;
 
         try {
-            String sql = "SELECT * FROM user WHERE email = ?";
+            String sql = "SELECT * FROM krsdb.user WHERE email = ?";
             ps = connection.prepareStatement(sql);
             ps.setString(1, email);
             rs = ps.executeQuery();
@@ -503,6 +472,7 @@ public class UserDAO extends DatabaseConnector implements DAO<User> {
                 user.setFullName(rs.getString("full_name"));
                 user.setEmail(rs.getString("email"));
                 user.setAvatar(rs.getString("avatar"));
+                user.setUsername(rs.getString("username"));
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
@@ -518,4 +488,37 @@ public class UserDAO extends DatabaseConnector implements DAO<User> {
         return user;
     }
 
+    public UserStatus toggleUserStatus(int userId) {
+        String getStatusQuery = "SELECT status FROM krsdb.user WHERE id = ?";
+        String updateStatusQuery = "UPDATE krsdb.user SET status = ?, modified_at = NOW() WHERE id = ?";
+        UserStatus newStatus = UserStatus.NotVerified;
+
+        try (Connection connection = DatabaseConnector.getConnection();
+             PreparedStatement getStatusStmt = connection.prepareStatement(getStatusQuery);
+             PreparedStatement updateStatusStmt = connection.prepareStatement(updateStatusQuery)) {
+
+            // Lấy trạng thái hiện tại của user
+            getStatusStmt.setInt(1, userId);
+            ResultSet rs = getStatusStmt.executeQuery();
+
+            if (rs.next()) {
+                String currentStatus = rs.getString("status");
+
+                if ("Active".equalsIgnoreCase(currentStatus) || "NotVerified".equalsIgnoreCase(currentStatus)) {
+                    newStatus = UserStatus.Deactivated;
+                } else if ("Deactivated".equalsIgnoreCase(currentStatus)) {
+                    newStatus = UserStatus.NotVerified;
+                }
+
+                // Cập nhật trạng thái mới
+                updateStatusStmt.setString(1, newStatus.toString());
+                updateStatusStmt.setInt(2, userId);
+                updateStatusStmt.executeUpdate();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return newStatus;
+    }
 }

@@ -16,12 +16,16 @@ import models.User;
 import models.UserStatus;
 import models.dao.SettingDAO;
 import models.dao.UserDAO;
+import services.dataaccess.SettingService;
+import services.dataaccess.UserService;
 
 /**
  * @author Admin
  */
 @WebServlet(name = "UserFilterController", urlPatterns = {"/user/search"})
 public class UserFilterController extends HttpServlet {
+    private final UserService userService = new UserService();
+    private final SettingService settingService = new SettingService();
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -31,10 +35,8 @@ public class UserFilterController extends HttpServlet {
         String contentSearch = request.getParameter("search_fullname");
         String roleFilter = request.getParameter("roleFilter");
         String statusFilter = request.getParameter("statusFilter");
-        UserDAO userDAO = new UserDAO();
-        SettingDAO settingDAO = new SettingDAO();
 
-        List<User> list = userDAO.searchUsers(contentSearch,
+        List<User> list = userService.searchUsers(contentSearch,
                 roleFilter != null && !roleFilter.isEmpty() ? Integer.parseInt(roleFilter) : null,
                 statusFilter != null && !statusFilter.isEmpty() ? UserStatus.valueOf(statusFilter) : null);
 
@@ -42,7 +44,7 @@ public class UserFilterController extends HttpServlet {
 
         for (User user : list) {
             if (!roleMap.containsKey(user.getRoleId())) {
-                Setting role = settingDAO.findById(user.getRoleId());
+                Setting role = settingService.findById(user.getRoleId());
                 if (role != null) {
                     roleMap.put(user.getRoleId(), role.getTitle());
                 } else {
@@ -71,8 +73,11 @@ public class UserFilterController extends HttpServlet {
                     "                            <td>" + roleMap.get(o.getRoleId()) + "</td>\n" +
                     "                            <td><span class='badge bg-" + statusClass + "'>" + o.getStatus() + "</span></td>\n" +
                     "                            <td>\n" +
-                    "                                <a href=\"user_update?id="+o.getId()+"\" class=\"btn btn-sm btn-outline-secondary\">\n" +
-                    "                                    <i class=\"bi bi-three-dots-vertical\"></i>\n" +
+                    "                                <a href='user_update?id=" + o.getId() + "' class='btn btn-sm action-btn' title='Edit'>\n" +
+                    "                                   <i class='bi bi-pencil-square fs-5'></i>\n" +
+                    "                                </a>\n" +
+                    "                                <a href='javascript:void(0);' class='btn btn-sm action-btn' title='Toggle Status' onclick='toggleStatus(" + o.getId() + ")'>\n" +
+                    "                                   <i id='lock-icon-" + o.getId() + "' class='bi " + (o.getStatus() == UserStatus.Deactivated ? "bi-lock-fill text-danger" : "bi-unlock-fill text-success") + " fs-5'></i>\n" +
                     "                                </a>\n" +
                     "                            </td>\n" +
                     "                        </tr>");

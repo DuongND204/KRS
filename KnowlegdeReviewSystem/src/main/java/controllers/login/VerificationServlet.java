@@ -95,7 +95,13 @@ public class VerificationServlet extends HttpServlet {
 
                 jsonResponse.put("success", true);
                 jsonResponse.put("message", "Verification successful!");
-                jsonResponse.put("redirectUrl", (user.getRoleId() == 3) ? "/home" : "/dashboard");
+                if (user.getRoleId() == 2 || user.getRoleId() == 3) {
+                    jsonResponse.put("redirectUrl", "/home");
+                } else if (user.getRoleId() == 4) {
+                    jsonResponse.put("redirectUrl", "/class_management");
+                } else {
+                    jsonResponse.put("redirectUrl", "/admin");
+                }
                 response.getWriter().write(jsonResponse.toString());
             } else {
                 jsonResponse.put("success", false);

@@ -12,6 +12,7 @@ public class Class {
     private int semesterId;
     private String className;
     private String code;
+    private String description;
     private int createdBy;
     private int modifiedBy;
     private List<User> classStudents;
@@ -20,6 +21,7 @@ public class Class {
     private ClassStatus status;
     private String managerName;
     private String subjectName;
+
 
     public Class() {
     }
@@ -46,7 +48,7 @@ public class Class {
         this.status = status;
         this.subjectId = subjectId;
         managerName = (managerId > 0) ? WebManager.getInstance().getUserDAO().getUserFullname(managerId) : "UnIdentify";
-        managerName = WebManager.getInstance().getSubjectDAO().findById(subjectId).getSubjectName();
+        subjectName = WebManager.getInstance().getSubjectDAO().findById(subjectId).getSubjectName();
     }
 
     //region Getter & Setter
@@ -117,6 +119,7 @@ public class Class {
     public void setSubjectId(int subjectId) {
         this.subjectId = subjectId;
         subjectName = WebManager.getInstance().getSubjectDAO().findById(subjectId).getSubjectName();
+        description = WebManager.getInstance().getSubjectDAO().findById(subjectId).getDescription();
     }
 
     public int getManagerId() {
@@ -162,6 +165,14 @@ public class Class {
 
     public void setSubjectName(String subjectName) {
         this.subjectName = subjectName;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     @Override
